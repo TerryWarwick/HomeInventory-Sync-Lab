@@ -25,6 +25,15 @@ export class GraphError extends Error {
   }
 }
 
+export function isNewConsentServiceReadOnly(error: unknown): boolean {
+  return (
+    error instanceof GraphError &&
+    error.status === 403 &&
+    error.detail.includes('"code":"serviceReadOnly"') &&
+    error.detail.includes('"message":"Database Is Read Only"')
+  );
+}
+
 export function parseRetryAfter(value: string | null, now = Date.now()): number | null {
   if (value === null) return null;
   const seconds = Number(value);

@@ -7,13 +7,21 @@ import { acceptInteractiveAccessToken } from "./auth/interactiveToken";
 import { DB_NAME, GRAPH_SCOPE, runtimeConfig } from "./config";
 import { deriveOwnerId } from "./domain/identity";
 import type { OwnerManifest, SyntheticRecord } from "./domain/schemas";
-import { createFetchGraphTransport, GraphClient, GraphError } from "./graph/GraphClient";
+import {
+  createFetchGraphTransport,
+  GraphClient,
+  GraphError,
+  isNewConsentServiceReadOnly,
+} from "./graph/GraphClient";
 import { LocalLabRepository } from "./local/LocalLabRepository";
 import { OneDriveManifestRepository } from "./onedrive/OneDriveManifestRepository";
 
 const localRepository = new LocalLabRepository();
 
 function messageFrom(error: unknown): string {
+  if (isNewConsentServiceReadOnly(error)) {
+    return "Microsoft OneDrive is currently blocking newly consented personal-account apps with serviceReadOnly. No lab data was written. This is a Microsoft service incident; retry after Microsoft restores provisioning.";
+  }
   if (error instanceof GraphError) return `${error.message} ${error.detail}`.trim();
   if (error instanceof Error) return error.message;
   return "An unexpected operation failure occurred.";
